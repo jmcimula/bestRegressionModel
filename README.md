@@ -1,0 +1,2 @@
+#Regression Model
+Choosing the best model from among different “best” models. Evaluating based on predictions (PRESS : Prediction Sum of Squares) and goodness of fit (AIC, BIC, R Squared, Adj. Squared). 
