@@ -64,8 +64,10 @@ for (i in 1:nrow(ExpVarMatrix)){
 		#Loading data frame
 		dynamicRegression <- rbind(dynamicRegression,dFrame)
 }
-   dynamicRegression <- as.data.frame(dynamicRegression)  
+   dynamicRegression <- as.data.frame(dynamicRegression) 
+   #getBestRModel(dynamicRegression)  #Call the function getBestRModel
    return (View(dynamicRegression))#Return
 
 }#End function
 
+#getBestRModel <- function (dataframe){  inputUnit <- dataframe}#End function
