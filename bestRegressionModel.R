@@ -70,4 +70,20 @@ for (i in 1:nrow(ExpVarMatrix)){
 
 }#End function
 
-#getBestRModel <- function (dataframe){  inputUnit <- dataframe}#End function
+getBestRModel <- function (AIC, BIC, PRESS){  
+
+#Assignement
+inputUnit <- dataframe
+
+nbCol <- ncol(inputUnit)
+nbRow <- nrow(inputUnit)
+
+for (i in 1: nbCol){
+	for (j in 1: nbRow){
+	
+	###print(inputUnit[i][j])
+	
+	}
+}
+
+}#End function
