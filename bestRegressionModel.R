@@ -3,7 +3,9 @@ library(DAAG)
 library(MASS)
 library(dplyr)
 library(stringr)
-library(glmnet)#(Lasso + Ridge + Elastic Net) Regression
+library(glmnet)#( Ridge + Elastic Net) Regression
+library(lars)#Lasso Regression
+
 
 getDFResponse <- function (dataframe, response){
 
@@ -157,10 +159,8 @@ getRidgeValue <- function(dataframe,nbResp,nbExp){
         fit <- glmnet(x, y, family="gaussian", alpha=0, lambda=0.001)
         #summarize the fit
 	    summary(fit)
-	    # select a step with a minimum error
-		best_step <- fit$df[which.min(fit$RSS)]
 		# make predictions
-		predictions <- predict(fit, x, s=best_step, type="fit")$fit
+		predictions <- predict(fit, x, type="link")
 		# summarize accuracy
 		rmse <- mean((y - predictions)^2)
 
@@ -189,11 +189,13 @@ getLassoValue <- function(dataframe,nbResp,nbExp){
 	    #fit model
         fit <- lars(x, y, type="lasso")
         #summarize the fit
-	    summary(fit)
-	    #make predictions
-	    predictions <- predict(fit, x, type = "link")
-	    #summarize accuracy
-	    rmse <- mean((y - predictions)^2)
+		summary(fit)
+		# select a step with a minimum error
+		best_step <- fit$df[which.min(fit$RSS)]
+		# make predictions
+		predictions <- predict(fit, x, s=best_step, type="fit")$fit
+		# summarize accuracy
+		rmse <- mean((y - predictions)^2)
 		
 		#return
 		return (rmse)
@@ -229,7 +231,3 @@ getElasticNetValue <- function(dataframe,nbResp,nbExp){
 		return (rmse)
 }#End-function 
 
-#getBestRModel <- function (AIC, BIC, PRESS){}#End function
-
-#CP Criterio
-#CPCriterio <- function (dataframe){}
