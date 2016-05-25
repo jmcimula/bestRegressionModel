@@ -3,6 +3,7 @@ library(DAAG)
 library(MASS)
 library(dplyr)
 library(stringr)
+library(glmnet)# (Lasso + Ridge + Elastic Net) Regression
 
 getDFResponse <- function (dataframe, response){
 
@@ -101,14 +102,18 @@ for (i in 1:nrow(ExpVarMatrix)){
 getRidgeValue <- function(dataframe, model){
 
    delim <- unlist(gregexpr(pattern ='[~]',model)) - 1 #Checking the tilde in the model   
+   
    stPart <- substr(model,1,delim) #Retrieving the part before the tilde with the response variable
+   
    stPart <- str_trim(stPart) #Trim the result retrieved   
+   
    sndPart <- substr(model,delim + 2, str_length(model)) #Retrieving the second part with the exploratory variables
    
    ChPlusLength <- length(unlist(gregexpr(pattern = "[+]",sndPart))) + 1 #The Length of the character + in the string augmented of 1   
    chPlus <- str_split_fixed(sndPart,"[+]",n = ChPlusLength) #Creating a table of string 
    
    getColData <- NULL
+   #Retrieving the number of columns for all explanatory variables
    for (i in 1 : length(chPlus)){
    
         H <- str_trim(chPlus[i]) #Decomposing the exploratory variable one by one from Linear Model presentation
@@ -119,17 +124,24 @@ getRidgeValue <- function(dataframe, model){
                        colData <- j
                      break;
                    }
-                 }
-        getColData <- paste(getColData,colData,sep=",")
-		print(getColData)
-   
+        }#End-for
+        getColData <- paste(getColData,colData,sep=",") #Concat the number of exp variable column in the dataframe
    }#End-for
    
+   expVarColumns <- getColData
    
-   
-     
-   
- 
+   #Retrieving the number of the column of the response variable
+   for (j in 1:dim(dataframe)[2]){
+                   #Take one by one chosen exploratory variables
+                   if (names(dataframe)[j] == stPart){
+                       colData <- j
+                     break;
+                   }
+		    colData <- colData
+    }#End-for
+	respVarColumn <- colData
+
+	
 
 }#End-function 
 
