@@ -67,6 +67,9 @@ for (i in 1:nrow(ExpVarMatrix)){
 		#Ridge Regression
 		nbResp <- 0
 		nbExp  <- 0
+		Ridge  <- 0
+		Lasso  <- 0 
+		ElasticNet <- 0
 		if (str_detect(mdRegComb,'[+]') == TRUE){
 
 			delim   <- unlist(gregexpr(pattern ='[~]',mdRegComb)) - 1 #Checking the tilde in the model 
@@ -77,12 +80,11 @@ for (i in 1:nrow(ExpVarMatrix)){
 			nbResp <- getNumberResponse (inputUnit,stPart) #Column of Response variable
 			nbExp  <- getNumberExploratory (inputUnit,sndPart)#Columns of Exploratory variables
 			Ridge  <- getRidgeValue(inputUnit,nbResp,nbExp)
-			print(Ridge)
-			#Lasso  <- getLassoValue(inputUnit,nbResp,nbExp)
-            #ElasticNet <- getElasticNetValue(inputUnit,nbResp,nbExp)
+			Lasso  <- getLassoValue(inputUnit,nbResp,nbExp)
+            ElasticNet <- getElasticNetValue(inputUnit,nbResp,nbExp)
 		}
 		#Assembling diagnostic parameters per model predictor in Matrix of all combinations
-		dFrame <- data.frame(modelReg = mdRegComb,RSquared = RSqrt,AdjustedRSquared = AdjRSqrt,AIC = AIC,BIC = BIC,PRESS = PL)#, nbResp = nbResp, nbExp = nbExp)#, Accuracy = RidgeRegression)
+		dFrame <- data.frame(modelReg = mdRegComb,RSquared = RSqrt,AdjustedRSquared = AdjRSqrt,AIC = AIC,BIC = BIC,PRESS = PL,Ridge = Ridge,Lasso = Lasso, ElasticNet = ElasticNet)#, nbResp = nbResp, nbExp = nbExp)#, Accuracy = RidgeRegression)
 		
 		#Loading data frame
 		dynamicRegression <- rbind(dynamicRegression,dFrame)
@@ -135,34 +137,96 @@ getNumberExploratory <- function (dataframe, model){
 }#End function
 
 getRidgeValue <- function(dataframe,nbResp,nbExp){
-    
 	    #Putting the exploratory in the vector
         nbExp <- substr(nbExp,2,str_length(nbExp))
-		#nbExp <- paste ("c(",nbExp,sep="")
-		#nbExp <- paste (nbExp,")",sep="")
+		#Taking the element of the pair one by one
+		nbExp <- str_split_fixed (nbExp,",", n = length(unlist(gregexpr(pattern = ",",nbExp))) + 1 )
 		
-        x <- as.matrix(dataframe[,nbExp])
+		dFrame <- data.frame(row.names=1:nrow(dataframe))
+        n <- 0		
+		for (i in 1 : length(nbExp)){
+		    
+			n <- as.integer(nbExp[i])
+			dataCol <- dataframe[n]
+		    dFrame  <- cbind(dFrame,dataCol)
+		}#End-for
+		dFrame <- as.data.frame(dFrame)
+        x <- as.matrix(dFrame)
 	    y <- as.matrix(dataframe[nbResp])
 	    #fit model
-        #fit <- glmnet(x, y, family="gaussian", alpha=0, lambda=0.001)
+        fit <- glmnet(x, y, family="gaussian", alpha=0, lambda=0.001)
         #summarize the fit
-	    #summary(fit)
-	    #make predictions
-	    #predictions <- predict(fit, x, type = "link")
-	    #summarize accuracy
-	    #rmse <- mean((y - predictions)^2)
-		
+	    summary(fit)
+	    # select a step with a minimum error
+		best_step <- fit$df[which.min(fit$RSS)]
+		# make predictions
+		predictions <- predict(fit, x, s=best_step, type="fit")$fit
+		# summarize accuracy
+		rmse <- mean((y - predictions)^2)
+
 		#return
-		return (nbExp)
-		
+		return (rmse)		
 }#End-function 
 
 getLassoValue <- function(dataframe,nbResp,nbExp){
 
+        #Putting the exploratory in the vector
+        nbExp <- substr(nbExp,2,str_length(nbExp))
+		#Taking the element of the pair one by one
+		nbExp <- str_split_fixed (nbExp,",", n = length(unlist(gregexpr(pattern = ",",nbExp))) + 1 )
+		
+		dFrame <- data.frame(row.names=1:nrow(dataframe))
+        n <- 0		
+		for (i in 1 : length(nbExp)){
+		    
+			n <- as.integer(nbExp[i])
+			dataCol <- dataframe[n]
+		    dFrame  <- cbind(dFrame,dataCol)
+		}#End-for
+		dFrame <- as.data.frame(dFrame)
+        x <- as.matrix(dFrame)
+	    y <- as.matrix(dataframe[nbResp])
+	    #fit model
+        fit <- lars(x, y, type="lasso")
+        #summarize the fit
+	    summary(fit)
+	    #make predictions
+	    predictions <- predict(fit, x, type = "link")
+	    #summarize accuracy
+	    rmse <- mean((y - predictions)^2)
+		
+		#return
+		return (rmse)
 }#End-function 
 
 getElasticNetValue <- function(dataframe,nbResp,nbExp){
-
+        #Putting the exploratory in the vector
+        nbExp <- substr(nbExp,2,str_length(nbExp))
+		#Taking the element of the pair one by one
+		nbExp <- str_split_fixed (nbExp,",", n = length(unlist(gregexpr(pattern = ",",nbExp))) + 1 )
+		
+		dFrame <- data.frame(row.names=1:nrow(dataframe))
+        n <- 0		
+		for (i in 1 : length(nbExp)){
+		    
+			n <- as.integer(nbExp[i])
+			dataCol <- dataframe[n]
+		    dFrame  <- cbind(dFrame,dataCol)
+		}#End-for
+		dFrame <- as.data.frame(dFrame)
+        x <- as.matrix(dFrame)
+	    y <- as.matrix(dataframe[nbResp])
+	    #fit model
+        fit <- glmnet(x, y, family="gaussian", alpha=0.5, lambda=0.001)
+        #summarize the fit
+	    summary(fit)
+	    #make predictions
+	    predictions <- predict(fit, x, type = "link")
+	    #summarize accuracy
+	    rmse <- mean((y - predictions)^2)
+		
+		#return
+		return (rmse)
 }#End-function 
 
 #getBestRModel <- function (AIC, BIC, PRESS){}#End function
