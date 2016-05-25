@@ -68,15 +68,15 @@ for (i in 1:nrow(ExpVarMatrix)){
 		
 		trainingData  <- sample_frac(inputUnit, 0.75) #Original dataframe
         testingData   <- setdiff(inputUnit, trainingData)
-	    ridge     <- lm.ridge (as.formula(mdRegComb),data=trainingData) #Ridge Linear
-		print(testingData)
+	    #ridge     <- lm.ridge (as.formula(mdRegComb),data=trainingData) #Ridge Linear
+		#print(testingData)
 		#predicted <- predict(ridge,testingData)  #Predict on test data
 		#comp      <- cbind (actual=testingData$response, predicted) #Combine	
 		#RidgeRegression <- mean (apply(comp, 1, min)/apply(comp, 1, max))
 		print(mdRegComb)
 		
-		    RidgeRegression <- 1
-		   
+		    #RidgeRegression <- 1
+		    getRidgeValue (inputUnit,mdRegComb)
 		}else{
 		
 		    RidgeRegression <- 0
@@ -100,17 +100,38 @@ for (i in 1:nrow(ExpVarMatrix)){
 
 getRidgeValue <- function(dataframe, model){
 
-      trainingData <- sample_frac(dataframe, 0.7) #Original dataframe
-      sid          <- as.numeric(rownames(trainingData)) #Because rownames() returns character
-      testingData  <- dataframe[-sid,]
-	  print(model)
-	  ridge     <- lm.ridge (model,data = trainingData) #Ridge Linear
-	  predicted <- predict(ridge, testingData)  #Predict on test data
-	  #compare   <- cbind (actual=testingData$response, predicted) #Combine
-	  
-	  #return (mean (apply(compare, 1, min)/apply(compare, 1, max))) #Calculate accuracy
-      return ("1")
-}
+   delim <- unlist(gregexpr(pattern ='[~]',model)) - 1 #Checking the tilde in the model   
+   stPart <- substr(model,1,delim) #Retrieving the part before the tilde with the response variable
+   stPart <- str_trim(stPart) #Trim the result retrieved   
+   sndPart <- substr(model,delim + 2, str_length(model)) #Retrieving the second part with the exploratory variables
+   
+   ChPlusLength <- length(unlist(gregexpr(pattern = "[+]",sndPart))) + 1 #The Length of the character + in the string augmented of 1   
+   chPlus <- str_split_fixed(sndPart,"[+]",n = ChPlusLength) #Creating a table of string 
+   
+   getColData <- NULL
+   for (i in 1 : length(chPlus)){
+   
+        H <- str_trim(chPlus[i]) #Decomposing the exploratory variable one by one from Linear Model presentation
+   
+        for (j in 1:dim(dataframe)[2]){
+                   #Take one by one chosen exploratory variables
+                   if (names(dataframe)[j] == H){
+                       colData <- j
+                     break;
+                   }
+                 }
+        getColData <- paste(getColData,colData,sep=",")
+		print(getColData)
+   
+   }#End-for
+   
+   
+   
+     
+   
+ 
+
+}#End-function 
 
 getLassoValue <- function(){
 
