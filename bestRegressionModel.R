@@ -1,4 +1,9 @@
+#Loading libraries
 library(DAAG)
+library(MASS)
+library(dplyr)
+library(stringr)
+
 getDFResponse <- function (dataframe, response){
 
 inputUnit <- dataframe
@@ -57,9 +62,31 @@ for (i in 1:nrow(ExpVarMatrix)){
 		
 		#Evaluating based on prediction
 		PL  <- DAAG::press(mdLM)
-			
+		
+		#Ridge Regression
+		if (str_detect(mdRegComb,'[+]') == TRUE){
+		
+		trainingData  <- sample_frac(inputUnit, 0.75) #Original dataframe
+        testingData   <- setdiff(inputUnit, trainingData)
+	    ridge     <- lm.ridge (as.formula(mdRegComb),data=trainingData) #Ridge Linear
+		print(testingData)
+		#predicted <- predict(ridge,testingData)  #Predict on test data
+		#comp      <- cbind (actual=testingData$response, predicted) #Combine	
+		#RidgeRegression <- mean (apply(comp, 1, min)/apply(comp, 1, max))
+		print(mdRegComb)
+		
+		    RidgeRegression <- 1
+		   
+		}else{
+		
+		    RidgeRegression <- 0
+		  
+		}
+
+		#RidgeRegression = mean (apply(compare, 1, min)/apply(compare, 1, max))
+		
 		#Assembling diagnostic parameters per model predictor in Matrix of all combinations
-		dFrame <- data.frame(modelReg = mdRegComb,RSquared = RSqrt,AdjustedRSquared = AdjRSqrt,AIC = AIC,BIC = BIC,PRESS = PL)
+		dFrame <- data.frame(modelReg = mdRegComb,RSquared = RSqrt,AdjustedRSquared = AdjRSqrt,AIC = AIC,BIC = BIC,PRESS = PL)#, Accuracy = RidgeRegression)
 		
 		#Loading data frame
 		dynamicRegression <- rbind(dynamicRegression,dFrame)
@@ -69,6 +96,29 @@ for (i in 1:nrow(ExpVarMatrix)){
    return (View(dynamicRegression))#Return
 
 }#End function
+
+
+getRidgeValue <- function(dataframe, model){
+
+      trainingData <- sample_frac(dataframe, 0.7) #Original dataframe
+      sid          <- as.numeric(rownames(trainingData)) #Because rownames() returns character
+      testingData  <- dataframe[-sid,]
+	  print(model)
+	  ridge     <- lm.ridge (model,data = trainingData) #Ridge Linear
+	  predicted <- predict(ridge, testingData)  #Predict on test data
+	  #compare   <- cbind (actual=testingData$response, predicted) #Combine
+	  
+	  #return (mean (apply(compare, 1, min)/apply(compare, 1, max))) #Calculate accuracy
+      return ("1")
+}
+
+getLassoValue <- function(){
+
+}
+
+getElasticNetValue <- function(){
+
+}
 
 getBestRModel <- function (AIC, BIC, PRESS){  
 
@@ -87,3 +137,13 @@ for (i in 1: nbCol){
 }
 
 }#End function
+
+#CP Criterio
+CPCriterio <- function (dataframe){
+
+inputUnit <- dataframe
+n <- inputUnit[1]
+p <- inputUnit[2]
+
+
+}
