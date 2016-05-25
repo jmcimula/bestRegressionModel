@@ -3,7 +3,7 @@ library(DAAG)
 library(MASS)
 library(dplyr)
 library(stringr)
-library(glmnet)# (Lasso + Ridge + Elastic Net) Regression
+library(glmnet)#(Lasso + Ridge + Elastic Net) Regression
 
 getDFResponse <- function (dataframe, response){
 
@@ -65,29 +65,24 @@ for (i in 1:nrow(ExpVarMatrix)){
 		PL  <- DAAG::press(mdLM)
 		
 		#Ridge Regression
+		nbResp <- 0
+		nbExp  <- 0
 		if (str_detect(mdRegComb,'[+]') == TRUE){
-		
-		trainingData  <- sample_frac(inputUnit, 0.75) #Original dataframe
-        testingData   <- setdiff(inputUnit, trainingData)
-	    #ridge     <- lm.ridge (as.formula(mdRegComb),data=trainingData) #Ridge Linear
-		#print(testingData)
-		#predicted <- predict(ridge,testingData)  #Predict on test data
-		#comp      <- cbind (actual=testingData$response, predicted) #Combine	
-		#RidgeRegression <- mean (apply(comp, 1, min)/apply(comp, 1, max))
-		print(mdRegComb)
-		
-		    #RidgeRegression <- 1
-		    getRidgeValue (inputUnit,mdRegComb)
-		}else{
-		
-		    RidgeRegression <- 0
-		  
-		}
 
-		#RidgeRegression = mean (apply(compare, 1, min)/apply(compare, 1, max))
-		
+			delim   <- unlist(gregexpr(pattern ='[~]',mdRegComb)) - 1 #Checking the tilde in the model 
+			stPart  <- substr(mdRegComb,1,delim) #Retrieving the part before the tilde with the response variable
+			stPart  <- str_trim(stPart) #Trim the result retrieved  			
+			sndPart <- substr(mdRegComb,delim + 2, str_length(mdRegComb)) #Retrieving the second part with the exploratory variables
+			
+			nbResp <- getNumberResponse (inputUnit,stPart) #Column of Response variable
+			nbExp  <- getNumberExploratory (inputUnit,sndPart)#Columns of Exploratory variables
+			Ridge  <- getRidgeValue(inputUnit,nbResp,nbExp)
+			print(Ridge)
+			#Lasso  <- getLassoValue(inputUnit,nbResp,nbExp)
+            #ElasticNet <- getElasticNetValue(inputUnit,nbResp,nbExp)
+		}
 		#Assembling diagnostic parameters per model predictor in Matrix of all combinations
-		dFrame <- data.frame(modelReg = mdRegComb,RSquared = RSqrt,AdjustedRSquared = AdjRSqrt,AIC = AIC,BIC = BIC,PRESS = PL)#, Accuracy = RidgeRegression)
+		dFrame <- data.frame(modelReg = mdRegComb,RSquared = RSqrt,AdjustedRSquared = AdjRSqrt,AIC = AIC,BIC = BIC,PRESS = PL)#, nbResp = nbResp, nbExp = nbExp)#, Accuracy = RidgeRegression)
 		
 		#Loading data frame
 		dynamicRegression <- rbind(dynamicRegression,dFrame)
@@ -98,19 +93,26 @@ for (i in 1:nrow(ExpVarMatrix)){
 
 }#End function
 
+getNumberResponse <- function (dataframe, model){
+#Retrieving the number of the column of the response variable
+   colData <- 0
+   for (j in 1:dim(dataframe)[2]){
+                   #Take one by one chosen exploratory variables
+                   if (names(dataframe)[j] == str_trim(model)){
+                       colData <- j
+                     break;
+                   }
+		    colData <- colData
+    }#End-for
+	respVarColumn <- colData #Response variable number in the dataframe
+	#print(respVarColumn)
+	return(respVarColumn)
+}#End function
 
-getRidgeValue <- function(dataframe, model){
+getNumberExploratory <- function (dataframe, model){
 
-   delim <- unlist(gregexpr(pattern ='[~]',model)) - 1 #Checking the tilde in the model   
-   
-   stPart <- substr(model,1,delim) #Retrieving the part before the tilde with the response variable
-   
-   stPart <- str_trim(stPart) #Trim the result retrieved   
-   
-   sndPart <- substr(model,delim + 2, str_length(model)) #Retrieving the second part with the exploratory variables
-   
-   ChPlusLength <- length(unlist(gregexpr(pattern = "[+]",sndPart))) + 1 #The Length of the character + in the string augmented of 1   
-   chPlus <- str_split_fixed(sndPart,"[+]",n = ChPlusLength) #Creating a table of string 
+   ChPlusLength <- length(unlist(gregexpr(pattern = "[+]",model))) + 1 #The Length of the character + in the string augmented of 1   
+   chPlus <- str_split_fixed(model,"[+]",n = ChPlusLength) #Creating a table of string 
    
    getColData <- NULL
    #Retrieving the number of columns for all explanatory variables
@@ -129,54 +131,41 @@ getRidgeValue <- function(dataframe, model){
    }#End-for
    
    expVarColumns <- getColData
-   
-   #Retrieving the number of the column of the response variable
-   for (j in 1:dim(dataframe)[2]){
-                   #Take one by one chosen exploratory variables
-                   if (names(dataframe)[j] == stPart){
-                       colData <- j
-                     break;
-                   }
-		    colData <- colData
-    }#End-for
-	respVarColumn <- colData
+   return(expVarColumns)#Return
+}#End function
 
-	
+getRidgeValue <- function(dataframe,nbResp,nbExp){
+    
+	    #Putting the exploratory in the vector
+        nbExp <- substr(nbExp,2,str_length(nbExp))
+		#nbExp <- paste ("c(",nbExp,sep="")
+		#nbExp <- paste (nbExp,")",sep="")
+		
+        x <- as.matrix(dataframe[,nbExp])
+	    y <- as.matrix(dataframe[nbResp])
+	    #fit model
+        #fit <- glmnet(x, y, family="gaussian", alpha=0, lambda=0.001)
+        #summarize the fit
+	    #summary(fit)
+	    #make predictions
+	    #predictions <- predict(fit, x, type = "link")
+	    #summarize accuracy
+	    #rmse <- mean((y - predictions)^2)
+		
+		#return
+		return (nbExp)
+		
+}#End-function 
+
+getLassoValue <- function(dataframe,nbResp,nbExp){
 
 }#End-function 
 
-getLassoValue <- function(){
+getElasticNetValue <- function(dataframe,nbResp,nbExp){
 
-}
+}#End-function 
 
-getElasticNetValue <- function(){
-
-}
-
-getBestRModel <- function (AIC, BIC, PRESS){  
-
-#Assignement
-inputUnit <- dataframe
-
-nbCol <- ncol(inputUnit)
-nbRow <- nrow(inputUnit)
-
-for (i in 1: nbCol){
-	for (j in 1: nbRow){
-	
-	###print(inputUnit[i][j])
-	
-	}
-}
-
-}#End function
+#getBestRModel <- function (AIC, BIC, PRESS){}#End function
 
 #CP Criterio
-CPCriterio <- function (dataframe){
-
-inputUnit <- dataframe
-n <- inputUnit[1]
-p <- inputUnit[2]
-
-
-}
+#CPCriterio <- function (dataframe){}
