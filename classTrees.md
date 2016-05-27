@@ -9,7 +9,7 @@ Methods for improving the performance of weak learners such as Trees. Classifica
 #Properties of Trees
 
 ####✔ Can handle huge datasets
-####✔ Can handle mixed predictors—quantitative and qualitative
+####✔ Can handle mixed predictors — quantitative and qualitative
 ####✔ Easily ignore redundant variables
 ####✔ Handle missing data elegantly
 ####✔ Small trees are easy to interpret
