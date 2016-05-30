@@ -1,0 +1,2 @@
+#Filtering predictors supervised learning.
+FILTER approach prior to supervised learning. ranking techniques. selection techniques based on correlation: mutual information, Shannon entropy, correlation ratio, Wilks' lambda.
