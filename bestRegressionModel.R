@@ -5,6 +5,7 @@ library(dplyr)
 library(stringr)
 library(glmnet)#( Ridge + Elastic Net) Regression
 library(lars)#Lasso Regression
+library(leaps)#Mallows Cp
 
 getDFResponse <- function (dataframe, response){
 
@@ -71,6 +72,7 @@ for (i in 1:nrow(ExpVarMatrix)){
 		Ridge  <- 0
 		Lasso  <- 0 
 		ElasticNet <- 0
+		Cp <- 0
 		if (str_detect(mdRegComb,'[+]') == TRUE){
 
 			delim   <- unlist(gregexpr(pattern ='[~]',mdRegComb)) - 1 #Checking the tilde in the model 
@@ -83,9 +85,10 @@ for (i in 1:nrow(ExpVarMatrix)){
 			Ridge  <- getRidgeValue(inputUnit,nbResp,nbExp)
 			Lasso  <- getLassoValue(inputUnit,nbResp,nbExp)
             ElasticNet <- getElasticNetValue(inputUnit,nbResp,nbExp)
+			Cp     <- getMallowCp(inputUnit,nbResp,nbExp)
 		}
 		#Assembling diagnostic parameters per model predictor in Matrix of all combinations
-		dFrame <- data.frame(modelReg = mdRegComb,RSquared = RSqrt,AdjustedRSquared = AdjRSqrt,AIC = AIC,BIC = BIC,PRESS = PL,Ridge = Ridge,Lasso = Lasso, ElasticNet = ElasticNet)#, nbResp = nbResp, nbExp = nbExp)#, Accuracy = RidgeRegression)
+		dFrame <- data.frame(modelReg = mdRegComb,RSquared = RSqrt,AdjustedRSquared = AdjRSqrt,AIC = AIC,BIC = BIC,PRESS = PL,Ridge = Ridge,Lasso = Lasso, ElasticNet = ElasticNet,Cp=Cp)#, nbResp = nbResp, nbExp = nbExp)#, Accuracy = RidgeRegression)
 		
 		#Loading data frame
 		dynamicRegression <- rbind(dynamicRegression,dFrame)
@@ -230,3 +233,28 @@ getElasticNetValue <- function(dataframe,nbResp,nbExp){
 		return (rmse)
 }#End-function 
 
+getMallowCp <- function (dataframe,nbResp,nbExp){
+   #Putting the exploratory in the vector
+        nbExp <- substr(nbExp,2,str_length(nbExp))
+		#Taking the element of the pair one by one
+		nbExp <- str_split_fixed (nbExp,",", n = length(unlist(gregexpr(pattern = ",",nbExp))) + 1 )
+		
+		dFrame <- data.frame(row.names=1:nrow(dataframe))
+        n <- 0		
+		for (i in 1 : length(nbExp)){
+		    
+			n <- as.integer(nbExp[i])
+			dataCol <- dataframe[n]
+		    dFrame  <- cbind(dFrame,dataCol)
+		}#End-for
+		dFrame <- as.data.frame(dFrame)
+        x <- as.matrix(dFrame)
+	    y <- as.matrix(dataframe[nbResp])
+		
+		#Mallows Cp
+		Cp <- leaps(x, y,names = names(dataframe)[nbExp],method = "Cp")$Cp
+		Cp <- Cp[which.min(Cp)]
+		
+		#return
+		return(Cp)
+}#End-function
