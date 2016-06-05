@@ -15,10 +15,11 @@ summary(diamonds) #Descriptive statistics
 #7: Price
 #2 Quality
 
-
 dataDiamonds <- diamonds [,c(2,5,6,7)] #Subsetting the dattaset
 
-nv <- naiveBayes(cut ~ ., data = dataDiamonds) #Model
+colnames(dataDiamonds)[1] <- "Quality"
+
+nv <- naiveBayes(Quality ~ ., data = dataDiamonds) #Model
 
 predict(nv,dataDiamonds[1:4,-1])
 
