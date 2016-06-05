@@ -3,7 +3,7 @@
 
 #Loading libraries
 library(e1071)
-#library(class)
+library(class)
 
 data("diamonds") #Loading economics dataset
 
