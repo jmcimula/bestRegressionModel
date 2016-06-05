@@ -25,14 +25,14 @@ colnames(dataDiamonds)[1] <- "Quality"
 # Bootstrap 95% CI for R-Squared
 
 # function to obtain R-Squared from the data 
-rSquare  <- function(formula, data, indices) {
+rSquared  <- function(formula, data, indices) {
   samp <- data[indices,] # allows boot to select sample 
   fit <- lm(formula, data = samp)
   return(summary(fit)$r.square)
 }
 
 # bootstrapping with 1000 replications 
-bootResult <- boot(data = dataDiamonds, statistic = rSquare, R = 5000, formula = price ~ depth + table)
+bootResult <- boot(data = dataDiamonds, statistic = rSquared, R = 5000, formula = price ~ depth + table)
 
 #The result
 bootResult
