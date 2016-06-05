@@ -31,7 +31,7 @@ rSquared  <- function(formula, data, indices) {
   return(summary(fit)$r.square)
 }
 
-# bootstrapping with 1000 replications 
+# bootstrapping with 5000 replications 
 bootResult <- boot(data = dataDiamonds, statistic = rSquared, R = 5000, formula = price ~ depth + table)
 
 #The result
