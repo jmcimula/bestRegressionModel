@@ -48,3 +48,14 @@ boot.ci(bootResult, type = "bca")#General
 boot.ci(bootResult, type = "bca", index = 1) # intercept 
 boot.ci(bootResult, type = "bca", index = 2) # depth
 boot.ci(bootResult, type = "bca", index = 3) # table
+
+
+# bootstrapping with 1000 replications 
+bootResult <- boot(data = dataDiamonds, statistic = rSquared, R = 1000, formula = price ~ depth + table)
+
+#The result
+bootResult
+
+plot (bootResult) #General plot
+#Get 95% confidence interval 
+boot.ci(bootResult, type = "bca")#General
