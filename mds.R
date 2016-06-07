@@ -24,7 +24,7 @@ dimTwo  <- MDS$points[,2]
 par(mar=c(1,1,1,1))
 
 plot(dimOne, dimTwo, xlab = "Coordinate 1", ylab = "Coordinate 2", main = "Metric	MDS", type = "n")
-text(dimOne, dimTwo, labels = row.names(mydata), cex = .7)
+text(dimOne, dimTwo, labels = row.names(msleep), cex = .7)
 
 
 #In the plot, we can see that Mercedes and Ferrari are probably outliers in this dataset
